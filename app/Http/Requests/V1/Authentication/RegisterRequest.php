@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Http\Requests\V1\Authentication;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class RegisterRequest extends FormRequest
+{
+    public function authorize()
+    {
+        return true; // allow public access
+    }
+
+    public function rules()
+    {
+        return [
+            'role' => 'required|in:user,doctor',
+
+            'email' => 'required|email|unique:accounts,email',
+            'password' => 'required|min:6',
+
+            // User fields
+            'nickname' => 'required_if:role,user',
+
+            // Doctor fields
+            'name' => 'required_if:role,doctor',
+            'license_number' => 'required_if:role,doctor',
+            'certificate' => 'required_if:role,doctor|file|mimes:pdf,jpg,png',
+            'specialization' => 'required_if:role,doctor',
+        ];
+    }
+}
