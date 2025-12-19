@@ -13,60 +13,57 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthenticationController extends Controller
 {
-    public function register(RegisterRequest $registerRequest)
+    public function register(RegisterRequest $request)
     {
-        $registerRequest->validate([
-            'role' => 'required|in:user,doctor',
+        $data = $request->validated();
 
-            'email' => 'required|email|unique:accounts,email',
-            'password' => 'required|min:6',
-
-            // Regular user fields
-            'nickname' => 'required_if:role,user',
-
-            // Doctor fields
-            'name' => 'required_if:role,doctor',
-            'license_number' => 'required_if:role,doctor',
-            'certificate' => 'required_if:role,doctor|file|mimes:pdf,jpg,png',
-            'specialization' => 'required_if:role,doctor',
-        ]);
-
-        // Create account
+        // Create account (password will be auto-hashed)
         $account = Account::create([
-            'email' => $registerRequest->email,
-            'password' => $registerRequest->password,
-            'role' => $registerRequest->role,
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'role' => $data['role'],
         ]);
 
         // If registering a regular user
-        if ($registerRequest->role === 'user') {
+        if ($data['role'] === 'user') {
             User::create([
                 'account_id' => $account->id,
-                'nickname' => $registerRequest->nickname,
+                'nickname' => $data['nickname'],
                 'anonymous' => false,
             ]);
         }
 
         // If registering a doctor
-        if ($registerRequest->role === 'doctor') {
+        if ($data['role'] === 'doctor') {
+            // Handle certificate file upload
+            $certificatePath = null;
+            if ($request->hasFile('certificate')) {
+                $certificatePath = $request->file('certificate')->store('certificates', 'public');
+            }
+
             Doctor::create([
                 'account_id' => $account->id,
-                'name' => $registerRequest->name,
-                'license_number' => $registerRequest->license_number,
-                'certificate' => $registerRequest->certificate,
-                'specialization' => $registerRequest->specialization,
+                'name' => $data['name'],
+                'license_number' => $data['license_number'],
+                'certificate' => $certificatePath,
+                'specialization' => $data['specialization'],
             ]);
         }
 
         return response()->json([
-            'message' => 'Registration successful.'
+            'message' => 'Registration successful.',
+            'account' => [
+                'id' => $account->id,
+                'email' => $account->email,
+                'role' => $account->role,
+            ]
         ], 201);
     }
 
     // Login
-    public function login(LoginRequest $loginRequest)
+    public function login(LoginRequest $request)
     {
-        $data = $loginRequest->validated();
+        $data = $request->validated();
 
         $account = Account::where('email', $data['email'])->first();
 
@@ -79,9 +76,23 @@ class AuthenticationController extends Controller
         // Create Sanctum token
         $token = $account->createToken('auth-token')->plainTextToken;
 
+        // Load user or doctor profile
+        $profile = null;
+        if ($account->role === 'user') {
+            $profile = $account->user;
+        } elseif ($account->role === 'doctor') {
+            $profile = $account->doctor;
+        }
+
         return response()->json([
             'message' => 'Login successful.',
             'token' => $token,
+            'account' => [
+                'id' => $account->id,
+                'email' => $account->email,
+                'role' => $account->role,
+            ],
+            'profile' => $profile,
         ], 200);
     }
 

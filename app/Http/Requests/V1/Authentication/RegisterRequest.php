@@ -17,16 +17,16 @@ class RegisterRequest extends FormRequest
             'role' => 'required|in:user,doctor',
 
             'email' => 'required|email|unique:accounts,email',
-            'password' => 'required|min:6',
+            'password' => 'required|min:8|confirmed',
 
             // User fields
-            'nickname' => 'required_if:role,user',
+            'nickname' => 'required_if:role,user|string|max:255',
 
             // Doctor fields
-            'name' => 'required_if:role,doctor',
-            'license_number' => 'required_if:role,doctor',
-            'certificate' => 'required_if:role,doctor|file|mimes:pdf,jpg,png',
-            'specialization' => 'required_if:role,doctor',
+            'name' => 'required_if:role,doctor|string|max:255',
+            'license_number' => 'required_if:role,doctor|string|unique:doctors,license_number',
+            'certificate' => 'required_if:role,doctor|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'specialization' => 'required_if:role,doctor|string|max:255',
         ];
     }
 }
