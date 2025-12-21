@@ -97,12 +97,59 @@ class AuthenticationController extends Controller
     }
 
     // Logout
-    public function logout()
+    public function logout(Request $request)
     {
-        auth()->user()->currentAccessToken()->delete();
+        $request->user()->currentAccessToken()->delete();
 
         return response()->json([
             'message' => 'Logout successful.'
         ], 200);
     }
+
+    // Get current authenticated user info
+    public function me(Request $request)
+    {
+        $account = $request->user();
+        $profile = null;
+        
+        if ($account->role === 'user') {
+            $profile = $account->user;
+        } elseif ($account->role === 'doctor') {
+            $profile = $account->doctor;
+        }
+        
+        return response()->json([
+            'account' => [
+                'id' => $account->id,
+                'email' => $account->email,
+                'role' => $account->role,
+            ],
+            'profile' => $profile,
+        ], 200);
+    }
+
+
+    // public function changePassword(Request $request)
+    // {
+    //     $request->validate([
+    //         'current_password' => 'required',
+    //         'new_password' => 'required|min:8|confirmed',
+    //     ]);
+
+    //     $user = $request->user();
+
+    //     if (!Hash::check($request->current_password, $user->password)) {
+    //         return response()->json([
+    //             'message' => 'Re-authentication required.'
+    //         ], 403);
+    //     }
+
+    //     $user->update([
+    //         'password' => $request->new_password,
+    //     ]);
+
+    //     return response()->json([
+    //         'message' => 'Password updated successfully.'
+    //     ]);
+    // }
 }
