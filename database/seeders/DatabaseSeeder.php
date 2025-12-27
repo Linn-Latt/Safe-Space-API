@@ -17,6 +17,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             MoodFeedbackSeeder::class,
+            TestSeeder::class,
+            TestQuestionSeeder::class,
+            TestResultRangeSeeder::class,
         ]);
         // User::factory(10)->create();
 

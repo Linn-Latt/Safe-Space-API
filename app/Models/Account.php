@@ -38,4 +38,14 @@ class Account extends Authenticatable
     {
         return $this->hasOne(Doctor::class);
     }
+
+    public function moodEntries()
+    {
+        return $this->hasMany(MoodEntry::class);
+    }
+
+    public function testAttempts()
+    {
+        return $this->hasMany(TestAttempt::class);
+    }
 }

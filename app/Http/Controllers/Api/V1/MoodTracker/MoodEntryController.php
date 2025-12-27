@@ -13,7 +13,7 @@ class MoodEntryController extends Controller
             'mood_score' => 'required|integer|min:1|max:5',
         ]);
 
-        $accountId = $request->user()->id; // Fixed: use ->id instead of ->account_id
+        $accountId = $request->user()->id; 
         $today = now()->toDateString();
 
         // Check if mood already tracked today

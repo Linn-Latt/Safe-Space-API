@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\Authentication\AuthenticationController;
 use App\Http\Controllers\Api\V1\MoodTracker\MoodEntryController;
 use App\Http\Controllers\Api\V1\MoodTracker\WeeklyMoodFeedbackController;
+use App\Http\Controllers\Api\v1\SelfAssessmentTest\SelfAssessmentTestController;
 
 // API Health Check
 Route::get('/health', function () {
@@ -25,6 +26,17 @@ Route::middleware('throttle:5,1')->group(function () {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthenticationController::class, 'logout']);
     Route::get('/me', [AuthenticationController::class, 'me']);
+
+    // Mood Tracking
     Route::post('/mood-entry', [MoodEntryController::class, 'store']);
     Route::get('/weekly-mood-feedback', [WeeklyMoodFeedbackController::class, 'getWeeklyMoodFeedback']);
+
+    // Self Assessment Tests
+    Route::get('/tests', [SelfAssessmentTestController::class, 'getTests']);
+    Route::get('/tests/{test}/questions', [SelfAssessmentTestController::class, 'getTestQuestions']);
+    Route::post('/tests/{test}/submit', [SelfAssessmentTestController::class, 'submitTestAnswers']);
+    
+    // Review Past Test Results
+    Route::get('/my-test-history', [SelfAssessmentTestController::class, 'getUserTestHistory']);
+    Route::get('/test-results/{attempt}', [SelfAssessmentTestController::class, 'getTestResult']);
 });
