@@ -40,7 +40,7 @@ class SelfAssessmentTestController extends Controller
                     'id' => $test->id,
                     'name' => $test->name,
                     'type' => $test->type,
-                    'description' => $test->description,
+                    // 'description' => $test->description,
                 ],
                 'questions' => $questions,
             ],
@@ -160,18 +160,19 @@ class SelfAssessmentTestController extends Controller
     {
         $attempts = TestAttempt::where('account_id', $request->user()->id)
             ->with(['test:id,name,type'])
-            ->orderBy('created_at', 'desc')
+            ->orderBy('created_at', 'asc')
             ->get()
             ->map(function ($attempt) {
                 return [
                     'attempt_id' => $attempt->id,
                     'total_score' => $attempt->total_score,
                     'result_label' => $attempt->result_label,
+                    'feedback' => $attempt->resultRange->feedback,
                     'test' => [
                         'name' => $attempt->test->name,
                         'type' => $attempt->test->type,
                     ],
-                    'completed_at' => $attempt->created_at->format('Y-m-d H:i'),
+                    'date' => $attempt->created_at->format('Y-m-d'),
                 ];
             });
 
