@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\Authentication\AuthenticationController;
 use App\Http\Controllers\Api\V1\MoodTracker\MoodEntryController;
 use App\Http\Controllers\Api\V1\MoodTracker\WeeklyMoodFeedbackController;
+use App\Http\Controllers\Api\V1\Post\PostCommentController;
+use App\Http\Controllers\Api\V1\Post\PostController;
 use App\Http\Controllers\Api\V1\Profile\ProfileController;
 use App\Http\Controllers\Api\v1\SelfAssessmentTest\SelfAssessmentTestController;
 
@@ -43,4 +45,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // Review Past Test Results
     Route::get('/tests-history', [SelfAssessmentTestController::class, 'getUserTestHistory']);
     Route::get('/test-results/{attempt}', [SelfAssessmentTestController::class, 'getTestResult']);
+
+    // Post
+    Route::get('/posts', [PostController::class, 'index']);
+    Route::post('/post', [PostController::class, 'store']);
+    Route::put('/post/{post}', [PostController::class, 'update']);
+    Route::delete('/post/{post}', [PostController::class, 'destory']);
+
+    // Post Comment
+    Route::get('/post/{post}/comments', [PostCommentController::class, 'index']);
+    Route::post('/post/{post}/comment', [PostCommentController::class, 'store']);
 });

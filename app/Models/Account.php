@@ -48,4 +48,14 @@ class Account extends Authenticatable
     {
         return $this->hasMany(TestAttempt::class);
     }
+
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+
+    public function postComments()
+    {
+        return $this->hasMany(PostComment::class);
+    }
 }
