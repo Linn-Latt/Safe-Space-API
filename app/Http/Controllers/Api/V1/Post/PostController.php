@@ -123,4 +123,33 @@ class PostController extends Controller
             'status' => 'success',
         ], 200);
     }
+
+    public function getPostsByDoctor($doctorId)
+    {
+        $posts = Post::with(['account.doctor', 'comments'])
+            ->where('account_id', $doctorId)
+            ->get()
+            ->map(function ($post) {
+                return [
+                    'id' => $post->id,
+                    'title' => $post->title,
+                    'content' => $post->content,
+                    'total_comments' => $post->comments->count(),
+                    'created_at' => $post->created_at,
+                    'comments' => $post->comments->map(function ($comment) {
+                        return [
+                            'id' => $comment->id,
+                            'content' => $comment->content,
+                            'created_at' => $comment->created_at,
+                        ];
+                    }),
+                ];
+            });
+
+        return response()->json([
+            'message' => 'Posts retrieved successfully',
+            'status' => true,
+            'data' => $posts,
+        ], 200);
+    }
 }
