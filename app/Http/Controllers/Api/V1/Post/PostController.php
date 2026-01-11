@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Post;
 use App\Http\Controllers\Controller;
 use App\Models\Post;
+use App\Models\PostComment;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
@@ -12,7 +13,7 @@ class PostController extends Controller
         // Get total count of posts
         $totalPosts = Post::where('status', 'published')->count();
 
-        $posts = Post::with(['account.user', 'account.doctor'])
+        $posts = Post::with(['account.user', 'account.doctor', 'comments'])
             ->where('status', 'published')
             ->latest()
             ->cursorPaginate(10)
@@ -33,6 +34,7 @@ class PostController extends Controller
                         'name' => $authorName,
                         'role' => $post->account->role,
                     ],
+                    'total_comments' => $post->comments->count(),
                     'created_at' => $post->created_at,
                 ];
             });

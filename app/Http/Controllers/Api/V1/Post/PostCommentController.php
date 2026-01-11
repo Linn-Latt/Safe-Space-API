@@ -10,10 +10,13 @@ class PostCommentController extends Controller
 {
     public function index(Post $post)
     {
-        $totalComments = $post->comments()->count();
+        // $totalComments = $post->comments()->count();
+        $totalComments = PostComment::where('post_id', $post->id)
+            ->whereNull('parent_id')
+            ->count();
         
         $comments = PostComment::where('post_id', $post->id)
-            ->with(['account.user', 'account.doctor'])
+            ->with(['account.user', 'account.doctor', 'replies.account.user', 'replies.account.doctor'])
             ->latest()
             ->cursorPaginate(5)
             ->through(function ($comment) {
@@ -28,6 +31,7 @@ class PostCommentController extends Controller
                 return [
                     'id' => $comment->id,
                     'comment' => $comment->comment,
+                    'parent_id' => $comment->parent_id,
                     'author' => [
                         'name' => $displayName,
                         'role' => $comment->account->role,
@@ -55,11 +59,13 @@ class PostCommentController extends Controller
     {
         $validated = $request->validate([
             'comment' => 'required|string',
+            'parent_id' => 'nullable|exists:post_comments,id',
         ]);
 
         $comment = PostComment::create([
             'post_id'    => $post->id,
             'account_id' => $request->user()->id,
+            'parent_id' => $validated['parent_id'] ?? null,
             'comment' => $validated['comment'],
         ]);
 
