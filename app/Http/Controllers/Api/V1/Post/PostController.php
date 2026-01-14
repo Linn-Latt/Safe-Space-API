@@ -107,8 +107,8 @@ class PostController extends Controller
         ], 200);
     }
 
-    public function destory(Post $post, Request $request)
-    {
+    public function destroy(Post $post, Request $request)
+    {   
         $account = $request->user();
         if ($account->role !== 'doctor' || $post->account_id !== $account->id) {
             return response()->json([
@@ -120,7 +120,7 @@ class PostController extends Controller
 
         return response()->json([
             'message' => 'Post deleted successfully',
-            'status' => 'success',
+            'status' => true,
         ], 200);
     }
 
@@ -128,6 +128,7 @@ class PostController extends Controller
     {
         $posts = Post::with(['account.doctor', 'comments'])
             ->where('account_id', $doctorId)
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($post) {
                 return [
