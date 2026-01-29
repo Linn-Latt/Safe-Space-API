@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             TestSeeder::class,
             TestQuestionSeeder::class,
             TestResultRangeSeeder::class,
+            ExerciseSeeder::class
         ]);
         // User::factory(10)->create();
 

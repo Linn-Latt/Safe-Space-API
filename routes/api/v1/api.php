@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\V1\Post\PostCommentController;
 use App\Http\Controllers\Api\V1\Post\PostController;
 use App\Http\Controllers\Api\V1\Profile\ProfileController;
 use App\Http\Controllers\Api\v1\SelfAssessmentTest\SelfAssessmentTestController;
+use App\Http\Controllers\ExerciseController;
 
 // API Health Check
 Route::get('/health', function () {
@@ -62,4 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Post Comment
     Route::get('/post/{post}/comments', [PostCommentController::class, 'index']);
     Route::post('/post/{post}/comment', [PostCommentController::class, 'store']);
+
+    // Exercises
+    Route::get('/exercises', [ExerciseController::class, 'index']);
 });
