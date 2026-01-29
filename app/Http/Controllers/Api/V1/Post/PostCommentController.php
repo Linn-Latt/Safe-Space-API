@@ -23,7 +23,11 @@ class PostCommentController extends Controller
                 // Get the appropriate name based on account role
                 $displayName = 'Anonymous';
                 if ($comment->account->role === 'user' && $comment->account->user) {
-                    $displayName = $comment->account->user->nickname;
+                    if ($comment->account->user->anonymous === 1){
+                        $displayName = 'Anonymous';
+                    } else {
+                        $displayName = $comment->account->user->nickname;
+                    }
                 } elseif ($comment->account->role === 'doctor' && $comment->account->doctor) {
                     $displayName = $comment->account->doctor->name;
                 }
@@ -69,10 +73,29 @@ class PostCommentController extends Controller
             'comment' => $validated['comment'],
         ]);
 
+        $comment->load(['account.user', 'account.doctor']);
+
+        $displayName = 'Anonymous';
+        if ($comment->account->role === 'user' && $comment->account->user) {
+            if ($comment->account->user->anonymous === 1) {
+                $displayName = 'Anonymous';
+            } else {
+                $displayName = $comment->account->user->nickname;
+            }
+        } elseif ($comment->account->role === 'doctor' && $comment->account->doctor) {
+            $displayName = $comment->account->doctor->name;
+        }
+
         return response()->json([
             'message' => 'Comment created successfully',
             'status' => 'success',
-            'data' => $comment,
+            'data' => [
+                'comment' => $comment,
+                'author' => [
+                    'name' => $displayName,
+                    'role' => $comment->account->role,
+                ],
+            ]
         ], 201);
     }
 }
