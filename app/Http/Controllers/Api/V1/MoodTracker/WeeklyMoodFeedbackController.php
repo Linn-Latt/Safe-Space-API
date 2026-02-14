@@ -19,12 +19,18 @@ class WeeklyMoodFeedbackController extends Controller
 
         $entries = MoodEntry::where('account_id', $accountId)
             ->whereBetween('mood_date', [$startDate, $endDate])
+            ->orderBy('mood_date')
             ->get();
 
-        if ($entries->count() < 7) {
+        if ($entries->count() < 5) { 
             return response()->json([
-                'message' => 'Not enough mood data for weekly analysis.'
-            ], 200);
+                'message' => 'Not enough mood data for weekly analysis. Need at least 7 entries.',
+                'debug' => [
+                    'entries_found' => $entries->count(),
+                    'date_range' => "$startDate to $endDate",
+                    'entries' => $entries->pluck('mood_date')->toArray()
+                ]
+            ], 400);
         }
 
         $averageMood = round($entries->avg('mood_score'), 2);
@@ -35,13 +41,15 @@ class WeeklyMoodFeedbackController extends Controller
 
         if (!$feedback) {
             return response()->json([
-                'message' => 'Weekly feedback not found.'
-            ], 500);
+                'message' => 'Weekly feedback not found for this mood average.',
+                'success' => false,
+            ], 404); 
         }
 
         // Prevent duplicate weekly result
         $alreadyExists = WeeklyMoodFeedback::where('account_id', $accountId)
             ->where('start_date', $startDate)
+            ->where('end_date', $endDate)
             ->exists();
 
         if (!$alreadyExists) {
@@ -66,6 +74,41 @@ class WeeklyMoodFeedbackController extends Controller
                 'title'        => $feedback->title,
                 'feedback'      => $feedback->feedback,
             ]
+        ], 200);
+    }
+
+    // Get weekly mood history for a specific user
+    public function getWeeklyMoodHistory(Request $request, $userId)
+    {
+        $weeklyResults = WeeklyMoodFeedback::with('feedback')
+            ->where('account_id', $userId)
+            ->orderBy('end_date', 'desc')
+            ->get();
+
+        if ($weeklyResults->isEmpty()) {
+            return response()->json([
+                'message' => 'No weekly mood results found for this user.',
+                'success' => false,
+                'data' => [],
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'User weekly mood results retrieved successfully.',
+            'success' => true,
+            'data' => $weeklyResults->map(function ($result) {
+                return [
+                    'id' => $result->id,
+                    'week' => [
+                        'start_date' => $result->start_date->format('Y-m-d'),
+                        'end_date' => $result->end_date->format('Y-m-d'),
+                    ],
+                    'average_mood' => $result->average_mood,
+                    'title' => $result->feedback->title,
+                    'feedback' => $result->feedback->feedback,
+                    'created_at' => $result->created_at,
+                ];
+            }),
         ], 200);
     }
 }

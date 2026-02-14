@@ -38,6 +38,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Mood Tracking
     Route::post('/mood-entry', [MoodEntryController::class, 'store']);
     Route::get('/weekly-mood-feedback', [WeeklyMoodFeedbackController::class, 'getWeeklyMoodFeedback']);
+    // Mood History
+    Route::get('/daily-mood-history/{userId}', [MoodEntryController::class, 'getDailyMoodHistory']);
+    Route::get('/weekly-mood-history/{userId}', [WeeklyMoodFeedbackController::class, 'getWeeklyMoodHistory']);
+
 
     // Self Assessment Tests
     Route::get('/tests', [SelfAssessmentTestController::class, 'getTests']);

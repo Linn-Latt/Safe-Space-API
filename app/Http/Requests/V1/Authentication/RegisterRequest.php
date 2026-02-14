@@ -17,7 +17,12 @@ class RegisterRequest extends FormRequest
             'role' => 'required|in:user,doctor',
 
             'email' => 'required|email|unique:accounts,email',
-            'password' => 'required|min:8|confirmed',
+            'password' => [
+                'required',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[0-9])(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]+$/'
+            ],
 
             // User fields
             'nickname' => 'required_if:role,user|string|max:255',
