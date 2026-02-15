@@ -140,27 +140,32 @@ class AuthenticationController extends Controller
     }
 
 
-    // public function changePassword(Request $request)
-    // {
-    //     $request->validate([
-    //         'current_password' => 'required',
-    //         'new_password' => 'required|min:8|confirmed',
-    //     ]);
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:accounts,email',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
 
-    //     $user = $request->user();
+        // Find account by email
+        $account = Account::where('email', $request->email)->first();
 
-    //     if (!Hash::check($request->current_password, $user->password)) {
-    //         return response()->json([
-    //             'message' => 'Re-authentication required.'
-    //         ], 403);
-    //     }
+        if (!$account) {
+            return response()->json([
+                'message' => 'Account not found.'
+            ], 404);
+        }
 
-    //     $user->update([
-    //         'password' => $request->new_password,
-    //     ]);
+        // Update password (will be auto-hashed by Account model)
+        $account->update([
+            'password' => $request->new_password,
+        ]);
 
-    //     return response()->json([
-    //         'message' => 'Password updated successfully.'
-    //     ]);
-    // }
+        // Revoke all existing tokens for security
+        $account->tokens()->delete();
+
+        return response()->json([
+            'message' => 'Password reset successfully. Please login with your new password.'
+        ], 200);
+    }
 }

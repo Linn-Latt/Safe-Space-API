@@ -26,6 +26,7 @@ Route::get('/health', function () {
 Route::middleware('throttle:5,1')->group(function () {
     Route::post('/register', [AuthenticationController::class, 'register']);
     Route::post('/login', [AuthenticationController::class, 'login']);
+    Route::post('/forgot-password', [AuthenticationController::class, 'forgotPassword']);
 });
 
 Route::middleware('auth:sanctum')->group(function () {
