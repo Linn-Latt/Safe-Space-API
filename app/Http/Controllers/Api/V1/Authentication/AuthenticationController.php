@@ -24,6 +24,8 @@ class AuthenticationController extends Controller
             'role' => $data['role'],
         ]);
 
+        $profile = null;
+
         // If registering a regular user
         if ($data['role'] === 'user') {
             User::create([
@@ -31,6 +33,8 @@ class AuthenticationController extends Controller
                 'nickname' => $data['nickname'],
                 'anonymous' => false,
             ]);
+
+            $profile = $account->user;
         }
 
         // If registering a doctor
@@ -48,15 +52,22 @@ class AuthenticationController extends Controller
                 'certificate' => $certificatePath,
                 'specialization' => $data['specialization'],
             ]);
+
+            $profile = $account->doctor;
         }
+
+        // Generate token immediately
+        $token = $account->createToken('auth-token')->plainTextToken;
 
         return response()->json([
             'message' => 'Registration successful.',
+            'token' => $token,
             'account' => [
                 'id' => $account->id,
                 'email' => $account->email,
                 'role' => $account->role,
-            ]
+            ],
+            'profile' => $profile,
         ], 201);
     }
 
