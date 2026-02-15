@@ -20,10 +20,14 @@ class PostController extends Controller
             ->through(function ($post) {
                 // Get author name based on role
                 $authorName = 'Anonymous';
+                $authorId = null;
+
                 if ($post->account->role === 'user' && $post->account->user) {
                     $authorName = $post->account->user->nickname;
+                    $authorId = $post->account->id; 
                 } elseif ($post->account->role === 'doctor' && $post->account->doctor) {
                     $authorName = $post->account->doctor->name;
+                    $authorId = $post->account->id;
                 }
 
                 return [
@@ -31,6 +35,7 @@ class PostController extends Controller
                     'title' => $post->title,
                     'content' => $post->content,
                     'author' => [
+                        'id' => $authorId,
                         'name' => $authorName,
                         'role' => $post->account->role,
                     ],
@@ -110,18 +115,19 @@ class PostController extends Controller
     public function destroy(Post $post, Request $request)
     {   
         $account = $request->user();
-        if ($account->role !== 'doctor' || $post->account_id !== $account->id) {
+
+        if ($account->role === 'doctor' && $post->account_id === $account->id) {
+            $post->delete();
+
             return response()->json([
-                'message' => 'Unauthorized.'
-            ], 403);
+                'message' => 'Post deleted successfully',
+                'status' => true,
+            ], 200);
         }
 
-        $post->delete();
-
         return response()->json([
-            'message' => 'Post deleted successfully',
-            'status' => true,
-        ], 200);
+            'message' => 'Unauthorized.'
+        ], 403);
     }
 
     public function getPostsByDoctor($doctorId)
@@ -135,6 +141,7 @@ class PostController extends Controller
                     'id' => $post->id,
                     'title' => $post->title,
                     'content' => $post->content,
+                    'doctor_name' => $post->account->doctor?->name ?? 'Unknown',
                     'total_comments' => $post->comments->count(),
                     'created_at' => $post->created_at,
                     'comments' => $post->comments->map(function ($comment) {
