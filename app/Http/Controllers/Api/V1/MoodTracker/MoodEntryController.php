@@ -72,4 +72,23 @@ class MoodEntryController extends Controller
             }),
         ], 200);
     }
+
+    public function checkToday(Request $request)
+    {
+        $accountId = $request->user()->id;
+        $today = now()->toDateString();
+
+        $alreadyTracked = MoodEntry::where('account_id', $accountId)
+            ->where('mood_date', $today)
+            ->exists();
+
+        return response()->json([
+            'message' => $alreadyTracked ? 'Mood already tracked today.' : 'No mood tracked today.',
+            'status' => true,
+            'data' => [
+                'has_tracked_today' => $alreadyTracked,
+                'date' => $today,
+            ],
+        ], 200);
+    }
 }

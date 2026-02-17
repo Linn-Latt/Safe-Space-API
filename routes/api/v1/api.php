@@ -10,7 +10,8 @@ use App\Http\Controllers\Api\V1\Post\PostCommentController;
 use App\Http\Controllers\Api\V1\Post\PostController;
 use App\Http\Controllers\Api\V1\Profile\ProfileController;
 use App\Http\Controllers\Api\v1\SelfAssessmentTest\SelfAssessmentTestController;
-use App\Http\Controllers\ExerciseController;
+use App\Http\Controllers\Api\V1\ExerciseController;
+use App\Http\Controllers\Api\V1\SymptomController;
 
 // API Health Check
 Route::get('/health', function () {
@@ -38,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Mood Tracking
     Route::post('/mood-entry', [MoodEntryController::class, 'store']);
+    Route::get('/mood-entry/check-today', [MoodEntryController::class, 'checkToday']);
     Route::get('/weekly-mood-feedback', [WeeklyMoodFeedbackController::class, 'getWeeklyMoodFeedback']);
     // Mood History
     Route::get('/daily-mood-history/{userId}', [MoodEntryController::class, 'getDailyMoodHistory']);
@@ -71,4 +73,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Exercises
     Route::get('/exercises', [ExerciseController::class, 'index']);
+
+    // Symptoms
+    Route::get('/symptoms', [SymptomController::class, 'index']);
+    Route::get('/symptoms/{slug}', [SymptomController::class, 'show']);
 });
