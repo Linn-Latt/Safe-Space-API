@@ -16,12 +16,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            MedicalSchoolSeeder::class,
             MoodFeedbackSeeder::class,
             TestSeeder::class,
             TestQuestionSeeder::class,
             TestResultRangeSeeder::class,
             ExerciseSeeder::class,
-            SymptomSeeder::class    
+            SymptomSeeder::class,  
         ]);
         // User::factory(10)->create();
 

@@ -39,18 +39,36 @@ class AuthenticationController extends Controller
 
         // If registering a doctor
         if ($data['role'] === 'doctor') {
-            // Handle certificate file upload
-            $certificatePath = null;
-            if ($request->hasFile('certificate')) {
-                $certificatePath = $request->file('certificate')->store('certificates', 'public');
+            // Validate credentials
+            $credentialsValid = $this->validateDoctorCredentials($data);
+            
+            if (!$credentialsValid) {
+                return response()->json([
+                    'message' => 'Registration failed. Invalid credentials provided.',
+                    'errors' => [
+                        'credentials' => ['The provided medical credentials could not be verified.']
+                    ]
+                ], 422);
             }
 
             Doctor::create([
                 'account_id' => $account->id,
                 'name' => $data['name'],
-                'license_number' => $data['license_number'],
-                'certificate' => $certificatePath,
+                'medical_degree' => $data['medical_degree'],
+                'medical_school_id' => $data['medical_school_id'],
+                'graduation_year' => $data['graduation_year'],
                 'specialization' => $data['specialization'],
+                'license_number' => $data['license_number'],
+                'license_expiry_date' => $data['license_expiry_date'],
+                'license_authority' => $data['license_authority'] ?? 'Myanmar Medical Council',
+                'years_of_experience' => $data['years_of_experience'],
+                'is_currently_practicing' => $data['is_currently_practicing'],
+                'practice_city' => $data['practice_city'],
+                'practice_state' => $data['practice_state'],
+                'clinic_name' => $data['clinic_name'] ?? null,
+                'clinic_registration_number' => $data['clinic_registration_number'] ?? null,
+                'professional_memberships' => $data['professional_memberships'] ?? null,
+                'credentials_confirmed' => true,
             ]);
 
             $profile = $account->doctor;
@@ -167,5 +185,50 @@ class AuthenticationController extends Controller
         return response()->json([
             'message' => 'Password reset successfully. Please login with your new password.'
         ], 200);
+    }
+
+    /**
+     * Validate doctor credentials
+     */
+    private function validateDoctorCredentials(array $data): bool
+    {
+        $currentYear = date('Y');
+        $graduationYear = $data['graduation_year'];
+        $yearsOfExperience = $data['years_of_experience'];
+
+        // Check graduation year against reasonable ranges
+        $minGraduationYear = 1970; // Reasonable minimum
+        $maxGraduationYear = $currentYear; // Cannot graduate in the future
+
+        if ($graduationYear < $minGraduationYear || $graduationYear > $maxGraduationYear) {
+            return false;
+        }
+
+        // Check if years of experience makes sense with graduation year
+        $yearsSinceGraduation = $currentYear - $graduationYear;
+        
+        // Years of experience should not exceed years since graduation
+        if ($yearsOfExperience > $yearsSinceGraduation) {
+            return false;
+        }
+
+        // For fresh graduates, allow 0 years of experience
+        if ($yearsSinceGraduation <= 1 && $yearsOfExperience > 1) {
+            return false;
+        }
+
+        // Check license expiry date is in the future
+        $licenseExpiryDate = \Carbon\Carbon::parse($data['license_expiry_date']);
+        if ($licenseExpiryDate->isPast()) {
+            return false;
+        }
+
+        // Additional validation: Check if medical school exists and is active
+        $medicalSchool = \App\Models\MedicalSchool::find($data['medical_school_id']);
+        if (!$medicalSchool || !$medicalSchool->is_active) {
+            return false;
+        }
+
+        return true;
     }
 }
