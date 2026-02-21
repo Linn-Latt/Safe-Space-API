@@ -13,7 +13,7 @@ class RegisterRequest extends FormRequest
 
     public function rules()
     {
-        return [
+        $rules = [
             'role' => 'required|in:user,doctor',
 
             'email' => 'required|email|unique:accounts,email',
@@ -44,8 +44,14 @@ class RegisterRequest extends FormRequest
             'clinic_registration_number' => 'nullable|string|max:50',
             'professional_memberships' => 'nullable|array',
             'professional_memberships.*' => 'string|max:200',
-            'credentials_confirmed' => 'required_if:role,doctor|accepted',
         ];
+
+        // Only add credentials_confirmed validation for doctor role
+        if ($this->input('role') === 'doctor') {
+            $rules['credentials_confirmed'] = 'required|accepted';
+        }
+
+        return $rules;
     }
 
     public function messages()
