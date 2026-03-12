@@ -16,6 +16,7 @@ class SymptomController extends Controller
             return [
                 'id' => $symptom->id,
                 'title' => $locale === 'my' && $symptom->title_mm ? $symptom->title_mm : $symptom->title,
+                'slug' => $symptom->slug
             ];
         });
 
