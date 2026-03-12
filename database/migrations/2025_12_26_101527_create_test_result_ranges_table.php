@@ -15,9 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('test_id')->constrained()->cascadeOnDelete();
             $table->string('label'); // Low, Moderate, High
+            $table->string('label_mm')->nullable();
             $table->integer('min_score');
             $table->integer('max_score');
             $table->text('feedback');
+            $table->text('feedback_mm')->nullable();
         });
     }
 

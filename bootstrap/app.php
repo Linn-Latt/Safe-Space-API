@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         
         // Enable CORS for API requests
         $middleware->api(prepend: [
+            \App\Http\Middleware\SetLocale::class,
             \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
         ]);
     })

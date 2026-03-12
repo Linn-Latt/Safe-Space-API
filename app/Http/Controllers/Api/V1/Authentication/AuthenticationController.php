@@ -98,7 +98,7 @@ class AuthenticationController extends Controller
 
         if (!$account || !Hash::check($data['password'], $account->password)) {
             return response()->json([
-                'message' => 'Invalid credentials.'
+                'message' => __('auth.login_failed')
             ], 401);
         }
 
@@ -114,7 +114,7 @@ class AuthenticationController extends Controller
         }
 
         return response()->json([
-            'message' => 'Login successful.',
+            'message' => __('auth.login_success'),
             'token' => $token,
             'account' => [
                 'id' => $account->id,

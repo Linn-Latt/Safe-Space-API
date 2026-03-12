@@ -8,8 +8,10 @@ class Test extends Model
 {
     protected $fillable = [
         'name',
+        'name_mm',
         'type',
         'description',
+        'description_mm',
     ];
 
     public function questions()

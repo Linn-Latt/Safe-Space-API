@@ -15,7 +15,18 @@ class SelfAssessmentTestController extends Controller
 {
     public function getTests()
     {
-        $tests = Test::select('id', 'name', 'type', 'description')->get();
+        $locale = app()->getLocale();
+        
+        $tests = Test::select('id', 'name', 'name_mm', 'type', 'description', 'description_mm')
+            ->get()
+            ->map(function ($test) use ($locale) {
+                return [
+                    'id' => $test->id,
+                    'name' => $locale === 'my' && $test->name_mm ? $test->name_mm : $test->name,
+                    'type' => $test->type,
+                    'description' => $locale === 'my' && $test->description_mm ? $test->description_mm : $test->description,
+                ];
+            });
 
         return response()->json([
             'message' => 'Tests retrieved successfully.',
@@ -27,10 +38,18 @@ class SelfAssessmentTestController extends Controller
     // Get Test Questions
     public function getTestQuestions(Test $test)
     {
+        $locale = app()->getLocale();
+        
         $questions = $test->questions()
-            ->select('id', 'question')
+            ->select('id', 'question', 'question_mm')
             ->orderBy('order_no', 'asc')
-            ->get();
+            ->get()
+            ->map(function ($question) use ($locale) {
+                return [
+                    'id' => $question->id,
+                    'question' => $locale === 'my' && $question->question_mm ? $question->question_mm : $question->question,
+                ];
+            });
 
         return response()->json([
             'message' => 'Questions retrieved successfully.',
@@ -38,9 +57,8 @@ class SelfAssessmentTestController extends Controller
             'data' => [
                 'test' => [
                     'id' => $test->id,
-                    'name' => $test->name,
+                    'name' => $locale === 'my' && $test->name_mm ? $test->name_mm : $test->name,
                     'type' => $test->type,
-                    // 'description' => $test->description,
                 ],
                 'questions' => $questions,
             ],
@@ -57,6 +75,7 @@ class SelfAssessmentTestController extends Controller
         ]);
 
         return DB::transaction(function () use ($request, $test) {
+            $locale = app()->getLocale();
             $userId = $request->user()->id;
             $answers = $request->answers;
 
@@ -71,7 +90,7 @@ class SelfAssessmentTestController extends Controller
 
             $attempt->update([
                 'total_score' => $totalScore,
-                'result_label' => $resultRange->label,
+                'result_label' => $locale === 'my' && $resultRange->label_mm ? $resultRange->label_mm : $resultRange->label,
             ]);
 
             return response()->json([
@@ -80,10 +99,10 @@ class SelfAssessmentTestController extends Controller
                 'data' => [
                     'attempt_id' => $attempt->id,
                     'total_score' => $totalScore,
-                    'result_label' => $resultRange->label,
-                    'feedback' => $resultRange->feedback,
+                    'result_label' => $locale === 'my' && $resultRange->label_mm ? $resultRange->label_mm : $resultRange->label,
+                    'feedback' => $locale === 'my' && $resultRange->feedback_mm ? $resultRange->feedback_mm : $resultRange->feedback,
                     'test' => [
-                        'name' => $test->name,
+                        'name' => $locale === 'my' && $test->name_mm ? $test->name_mm : $test->name,
                         'type' => $test->type,
                     ],
                 ],
@@ -134,6 +153,8 @@ class SelfAssessmentTestController extends Controller
             ], 403);
         }
 
+        $locale = app()->getLocale();
+        
         // Get the result range for feedback
         $resultRange = $this->resolveResultRange($attempt->test_id, $attempt->total_score);
 
@@ -143,11 +164,11 @@ class SelfAssessmentTestController extends Controller
             'data' => [
                 'attempt_id' => $attempt->id,
                 'total_score' => $attempt->total_score,
-                'result_label' => $attempt->result_label,
-                'feedback' => $resultRange->feedback,
+                'result_label' => $locale === 'my' && $resultRange->label_mm ? $resultRange->label_mm : $resultRange->label,
+                'feedback' => $locale === 'my' && $resultRange->feedback_mm ? $resultRange->feedback_mm : $resultRange->feedback,
                 'test' => [
                     'id' => $attempt->test->id,
-                    'name' => $attempt->test->name,
+                    'name' => $locale === 'my' && $attempt->test->name_mm ? $attempt->test->name_mm : $attempt->test->name,
                     'type' => $attempt->test->type,
                 ],
                 'completed_at' => $attempt->created_at,
@@ -158,18 +179,22 @@ class SelfAssessmentTestController extends Controller
     // Get all test attempts for the authenticated user
     public function getUserTestHistory(Request $request)
     {
+        $locale = app()->getLocale();
+        
         $attempts = TestAttempt::where('account_id', $request->user()->id)
-            ->with(['test:id,name,type'])
+            ->with(['test:id,name,name_mm,type'])
             ->orderBy('created_at', 'asc')
             ->get()
-            ->map(function ($attempt) {
+            ->map(function ($attempt) use ($locale) {
+                $resultRange = $this->resolveResultRange($attempt->test_id, $attempt->total_score);
+                
                 return [
                     'attempt_id' => $attempt->id,
                     'total_score' => $attempt->total_score,
-                    'result_label' => $attempt->result_label,
-                    'feedback' => $attempt->resultRange->feedback,
+                    'result_label' => $locale === 'my' && $resultRange->label_mm ? $resultRange->label_mm : $resultRange->label,
+                    'feedback' => $locale === 'my' && $resultRange->feedback_mm ? $resultRange->feedback_mm : $resultRange->feedback,
                     'test' => [
-                        'name' => $attempt->test->name,
+                        'name' => $locale === 'my' && $attempt->test->name_mm ? $attempt->test->name_mm : $attempt->test->name,
                         'type' => $attempt->test->type,
                     ],
                     'date' => $attempt->created_at->format('Y-m-d'),

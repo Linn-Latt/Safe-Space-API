@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('test_id')->constrained()->cascadeOnDelete();
             $table->text('question');
+            $table->text('question_mm')->nullable();
             $table->integer('order_no');
         });
     }

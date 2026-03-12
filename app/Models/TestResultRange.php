@@ -11,9 +11,11 @@ class TestResultRange extends Model
     protected $fillable = [
         "test_id",
         "label",
+        "label_mm",
         "min_score",
         "max_score",
         "feedback",
+        "feedback_mm",
     ];
 
     public function test()

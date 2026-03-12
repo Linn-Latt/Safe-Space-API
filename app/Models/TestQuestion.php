@@ -11,6 +11,7 @@ class TestQuestion extends Model
     protected $fillable = [
         "test_id",
         "question",
+        "question_mm",
         "order_no",
     ];
 

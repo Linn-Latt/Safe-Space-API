@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('tests', function (Blueprint $table) {
             $table->id();
             $table->string('name'); 
+            $table->string('name_mm')->nullable();
             $table->string('type');
             $table->text('description')->nullable();
+            $table->text('description_mm')->nullable();
             $table->timestamps();
         });
     }
