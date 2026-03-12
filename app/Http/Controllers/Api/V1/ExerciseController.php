@@ -10,13 +10,15 @@ class ExerciseController extends Controller
 {
     public function index()
     {
-        $exercises = Exercise::cursorPaginate(10)->through(function ($exercise) {
+        $locale = app()->getLocale();
+        
+        $exercises = Exercise::cursorPaginate(10)->through(function ($exercise) use ($locale) {
             return [
                 'id' => $exercise->id,
-                'title' => $exercise->title,
-                'description' => $exercise->description,
-                'exercise_steps' => $exercise->exercise_steps,
-                'tips' => $exercise->tips,
+                'title' => $locale === 'my' && $exercise->title_mm ? $exercise->title_mm : $exercise->title,
+                'description' => $locale === 'my' && $exercise->description_mm ? $exercise->description_mm : $exercise->description,
+                'exercise_steps' => $locale === 'my' && $exercise->exercise_steps_mm ? $exercise->exercise_steps_mm : $exercise->exercise_steps,
+                'tips' => $locale === 'my' && $exercise->tips_mm ? $exercise->tips_mm : $exercise->tips,
             ];
         });
 

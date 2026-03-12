@@ -15,10 +15,14 @@ return new class extends Migration
             $table->id();
             $table->string('type');
             $table->string('title');
+            $table->string('title_mm')->nullable();
             $table->text('description');
+            $table->text('description_mm')->nullable();
             $table->integer('duration');
             $table->json('exercise_steps');
+            $table->json('exercise_steps_mm')->nullable();
             $table->string('tips')->nullable();
+            $table->string('tips_mm')->nullable();
             $table->boolean('is_active');
         });
     }

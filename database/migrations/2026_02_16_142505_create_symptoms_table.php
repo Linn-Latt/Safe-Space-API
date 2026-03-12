@@ -14,8 +14,10 @@ return new class extends Migration
         Schema::create('symptoms', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->string('title_mm')->nullable();
             $table->string('slug')->unique();
             $table->json('symptoms');
+            $table->json('symptoms_mm')->nullable();
             $table->timestamps();
         });
     }

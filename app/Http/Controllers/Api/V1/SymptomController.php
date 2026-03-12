@@ -10,10 +10,12 @@ class SymptomController extends Controller
 {
     public function index()
     {
-        $symptoms = Symptom::cursorPaginate(10)->through(function ($symptom) {
+        $locale = app()->getLocale();
+        
+        $symptoms = Symptom::cursorPaginate(10)->through(function ($symptom) use ($locale) {
             return [
                 'id' => $symptom->id,
-                'title' => $symptom->title,
+                'title' => $locale === 'my' && $symptom->title_mm ? $symptom->title_mm : $symptom->title,
             ];
         });
 
@@ -36,6 +38,8 @@ class SymptomController extends Controller
 
     public function show($slug)
     {
+        $locale = app()->getLocale();
+        
         $symptom = Symptom::where('slug', $slug)->first();
 
         if (!$symptom) {
@@ -50,9 +54,9 @@ class SymptomController extends Controller
             'status' => true,
             'data' => [
                 'id' => $symptom->id,
-                'title' => $symptom->title,
+                'title' => $locale === 'my' && $symptom->title_mm ? $symptom->title_mm : $symptom->title,
                 'slug' => $symptom->slug,
-                'symptoms' => $symptom->symptoms,
+                'symptoms' => $locale === 'my' && $symptom->symptoms_mm ? $symptom->symptoms_mm : $symptom->symptoms,
             ],
         ], 200);
     }
