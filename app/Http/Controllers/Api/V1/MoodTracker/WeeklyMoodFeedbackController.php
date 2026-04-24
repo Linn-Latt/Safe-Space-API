@@ -14,8 +14,11 @@ class WeeklyMoodFeedbackController extends Controller
     {
         $accountId = $request->user()->id;
 
-        $endDate = now()->toDateString();
-        $startDate = now()->subDays(6)->toDateString();
+        // ISO week: Monday = day 1, Sunday = day 7
+        $today = now();
+        $dayOfWeek = (int) $today->format('N'); // 1 = Monday, 7 = Sunday
+        $startDate = $today->copy()->subDays($dayOfWeek - 1)->toDateString();
+        $endDate = $today->copy()->subDays($dayOfWeek - 1)->addDays(6)->toDateString();
 
         $entries = MoodEntry::where('account_id', $accountId)
             ->whereBetween('mood_date', [$startDate, $endDate])
