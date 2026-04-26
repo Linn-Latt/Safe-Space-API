@@ -70,6 +70,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Post Comment
     Route::get('/post/{post}/comments', [PostCommentController::class, 'index']);
     Route::post('/post/{post}/comment', [PostCommentController::class, 'store']);
+    Route::put('/comment/{comment}', [PostCommentController::class, 'update']);
+    Route::delete('/comment/{comment}', [PostCommentController::class, 'destroy']);
 
     // Exercises
     Route::get('/exercises', [ExerciseController::class, 'index']);

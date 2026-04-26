@@ -36,11 +36,14 @@ class PostCommentController extends Controller
                     'id' => $comment->id,
                     'comment' => $comment->comment,
                     'parent_id' => $comment->parent_id,
+                    'account_id' => $comment->account_id,
                     'author' => [
+                        'id' => $comment->account_id,
                         'name' => $displayName,
                         'role' => $comment->account->role,
                     ],
                     'created_at' => $comment->created_at,
+                    'updated_at' => $comment->updated_at,
                 ];
             });
 
@@ -91,11 +94,95 @@ class PostCommentController extends Controller
             'status' => 'success',
             'data' => [
                 'comment' => $comment,
+                'account_id' => $comment->account_id,
                 'author' => [
+                    'id' => $comment->account_id,
                     'name' => $displayName,
                     'role' => $comment->account->role,
                 ],
             ]
         ], 201);
+    }
+
+    public function update(Request $request, PostComment $comment)
+    {
+        if ($comment->account_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $validated = $request->validate([
+            'comment' => 'required|string',
+        ]);
+
+        $comment->update($validated);
+        $comment->load(['account.user', 'account.doctor']);
+
+        return response()->json([
+            'message' => 'Comment updated successfully',
+            'status' => true,
+            'data' => [
+                'id' => $comment->id,
+                'account_id' => $comment->account_id,
+                'comment' => $comment->comment,
+                'parent_id' => $comment->parent_id,
+                'author' => [
+                    'id' => $comment->account_id,
+                    'name' => $this->resolveDisplayName($comment),
+                    'role' => $comment->account->role,
+                ],
+                'updated_at' => $comment->updated_at,
+            ],
+        ], 200);
+    }
+
+    public function destroy(Request $request, PostComment $comment)
+    {
+        if ($comment->account_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $comment->load(['account.user', 'account.doctor']);
+
+        $data = [
+            'id' => $comment->id,
+            'comment' => $comment->comment,
+            'parent_id' => $comment->parent_id,
+            'author' => [
+                'name' => $this->resolveDisplayName($comment),
+                'role' => $comment->account->role,
+            ],
+            'created_at' => $comment->created_at,
+        ];
+
+        $comment->delete();
+
+        // Include account_id and author details for frontend ownership checks
+        $data = array_merge($data, [
+            'account_id' => $comment->account_id,
+            'author' => [
+                'id' => $comment->account_id,
+                'name' => $this->resolveDisplayName($comment),
+                'role' => $comment->account->role,
+            ],
+        ]);
+
+        return response()->json([
+            'message' => 'Comment deleted successfully',
+            'status' => true,
+            'data' => $data,
+        ], 200);
+    }
+
+    private function resolveDisplayName(PostComment $comment): string
+    {
+        if ($comment->account->role === 'user' && $comment->account->user) {
+            return $comment->account->user->anonymous ? 'Anonymous' : $comment->account->user->nickname;
+        }
+
+        if ($comment->account->role === 'doctor' && $comment->account->doctor) {
+            return $comment->account->doctor->name;
+        }
+
+        return 'Anonymous';
     }
 }
